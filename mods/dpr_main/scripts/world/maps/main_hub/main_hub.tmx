@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.9" tiledversion="1.9.0" orientation="orthogonal" renderorder="right-down" width="23" height="27" tilewidth="40" tileheight="40" infinite="0" nextlayerid="11" nextobjectid="74">
+<map version="1.9" tiledversion="1.9.0" orientation="orthogonal" renderorder="right-down" width="23" height="27" tilewidth="40" tileheight="40" infinite="0" nextlayerid="11" nextobjectid="82">
  <editorsettings>
   <export target="data.lua" format="lua"/>
  </editorsettings>
@@ -9,6 +9,7 @@
   <property name="name" value="Floor One - Central Hub"/>
  </properties>
  <tileset firstgid="1" source="../../tilesets/main_area.tsx"/>
+ <tileset firstgid="209" source="../../tilesets/other-objects.tsx"/>
  <objectgroup color="#ffaaff" id="8" name="objects_bg"/>
  <layer id="1" name="Tile Layer 1" width="23" height="27">
   <data encoding="csv">
@@ -233,7 +234,7 @@
    </properties>
    <point/>
   </object>
-  <object id="63" name="npc" x="460" y="160">
+  <object id="63" name="npc" x="465" y="150">
    <properties>
     <property name="actor" value="sans"/>
     <property name="cutscene" value="hub.sans"/>
@@ -250,6 +251,35 @@
     <property name="skin" value="cyber_city"/>
    </properties>
   </object>
+  <object id="74" name="transition" x="420" y="60" width="80" height="40">
+   <properties>
+    <property name="map" value="hub_elevator"/>
+    <property name="marker" value="entry"/>
+   </properties>
+  </object>
+  <object id="76" name="dogconegroup" x="-40" y="200" width="40" height="40">
+   <properties>
+    <property name="default_state" type="bool" value="true"/>
+   </properties>
+  </object>
+  <object id="77" name="dogconegroup" x="-40" y="240" width="40" height="40">
+   <properties>
+    <property name="default_state" type="bool" value="true"/>
+   </properties>
+  </object>
+  <object id="78" gid="210" x="424" y="926" width="72" height="104">
+   <properties>
+    <property name="cond" value="not Noel:loadNoel() and Game:getFlag(&quot;FUN&quot;) == 99"/>
+   </properties>
+  </object>
+  <object id="80" name="interactable" x="424" y="900" width="72" height="20">
+   <properties>
+    <property name="cond" value="not Noel:loadNoel() and Game:getFlag(&quot;FUN&quot;) == 99"/>
+    <property name="cutscene" value="shared_cutscenes.greyarea"/>
+    <property name="solid" type="bool" value="true"/>
+   </properties>
+  </object>
+  <object id="81" name="NewYearCountDown" x="760" y="118" width="120" height="92"/>
  </objectgroup>
  <objectgroup color="#7f00ff" id="4" name="markers">
   <object id="35" name="south" x="460" y="1040">
@@ -277,6 +307,9 @@
    <point/>
   </object>
   <object id="73" name="landing" x="460" y="644">
+   <point/>
+  </object>
+  <object id="75" name="entry_elevator" x="460" y="170">
    <point/>
   </object>
  </objectgroup>

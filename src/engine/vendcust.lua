@@ -21,9 +21,20 @@ GITHUB_REPOS = {
 		"Temple-Of-Creativity"
 	},
 	AcousticJammYT={
-		"dpr_jamm_dlc"
+		"dpr_jamm_dlc",
+		"DPR_Dark_Pit"
 	},
 	polypoyo={
 		"dlc_test"
+	},
+	NelleMonelle={
+		"dlc_yellow"
+	},
+	BrendaK7200={
+		"dlc_forest"
+	},
+	JustAnotherRandomGithubUser={
+		"dpr_spamtown_dlc",
+		"dpr_underground_dlc"
 	}
 }

@@ -6,6 +6,7 @@ if not HOTSWAPPING then
     Kristal.Mods = require("src.engine.mods")
     Kristal.Overlay = require("src.engine.overlay")
     Kristal.Shaders = require("src.engine.shaders")
+    Kristal.PluginLoader = require("src.engine.pluginloader")
     Kristal.States = {
         ["Loading"] = require("src.engine.loadstate"),
         ["MainMenu"] = require("src.engine.menu.mainmenu"),
@@ -39,8 +40,8 @@ if not HOTSWAPPING then
     function Kristal.reloadnoel()
         -- If you don't know what this is for, then don't touch it!!!
         
-        package.loaded["src.engine.game.noel.noel_spawn"] = nil 
-        Noel = require("src.engine.game.noel.noel_spawn")      
+        package.loaded["src.engine.game.char_file_handlers.noel_spawn"] = nil 
+        Noel = require("src.engine.game.char_file_handlers.noel_spawn")      
         if Noel:loadNoel() then
             Kristal.noel = true
         else 
@@ -144,6 +145,7 @@ function love.load(args)
 
     -- setup structure
     love.filesystem.createDirectory("mods")
+    love.filesystem.createDirectory("plugins")
     love.filesystem.createDirectory("saves")
 
     -- default registry
@@ -201,7 +203,7 @@ function love.load(args)
         love.graphics.reset()
 
         Draw.pushCanvas(SCREEN_CANVAS)
-        love.graphics.clear(0, 0, 0, 1)
+        love.graphics.clear(0, 0, 0, 0)
         orig(...)
         Kristal.Stage:draw()
         Kristal.Overlay:draw()
@@ -994,7 +996,8 @@ function Kristal.clearModState()
     Kristal.callEvent(KRISTAL_EVENT.unload)
     Mod = nil
 
-    Kristal.Mods.clear()
+    -- TODO: make this work with the plugin loader
+    -- Kristal.Mods.clear()
     Kristal.clearModHooks()
     Kristal.clearModSubclasses()
 
@@ -1027,6 +1030,8 @@ function Kristal.returnToMenu()
     Gamestate.switch({})
     -- Clear the mod
     Kristal.clearModState()
+	
+	Kristal.loadAssets("", "plugins", "")
 
     -- Reload mods and return to memu
     Kristal.loadAssets("", "mods", "", function ()
@@ -1067,6 +1072,8 @@ function Kristal.quickReload(mode)
     Gamestate.switch({})
     -- Clear the mod
     Kristal.clearModState()
+	-- Reload plugins
+	Kristal.loadAssets("", "plugins", "")
     -- Reload mods
     Kristal.loadAssets("", "mods", "", function ()
         Kristal.setDesiredWindowTitleAndIcon()
@@ -1243,6 +1250,9 @@ function Kristal.loadModAssets(id, asset_type, asset_paths, after)
         Kristal.loadAssets(mod.libs[lib_id].path, asset_type or "all", asset_paths or "", finishLoadStep)
     end
     Kristal.loadAssets(mod.path, asset_type or "all", asset_paths or "", finishLoadStep)
+    for plugin in Kristal.PluginLoader.iterPlugins(true) do
+        Kristal.loadAssets(plugin.path, asset_type or "all", asset_paths or "", finishLoadStep)
+    end
 end
 
 function Kristal.startGameDPR(save_id, save_name, after)
@@ -1261,6 +1271,7 @@ function Kristal.swapIntoMod(id, use_lame_fadeout, ...)
         -- TODO: Floweycheck DLC
         print("WARNING: DLC " .. id .. " is not installed.")
     end
+    Game:setFlag("is_swapping_mods", true)
 
     local save_id = Game.started and Game.save_id or 1
     local save = Game.started and Game:save() or Kristal.getSaveFile(save_id)
@@ -1278,7 +1289,17 @@ function Kristal.swapIntoMod(id, use_lame_fadeout, ...)
     if map_args[1] then
         facing = table.remove(map_args, 1)
     end
-    save.room_id = map
+
+    Kristal.modswap_destination = {
+        map,
+        marker,
+        x,
+        y,
+        facing
+    }
+
+    save.room_id = "conversion_rooms/" .. (Game.light and "light" or "dark")
+    --save.room_id = map
     save.spawn_facing = facing
     if marker then
         save.spawn_marker = marker
@@ -1334,6 +1355,52 @@ function Kristal.setDesiredWindowTitleAndIcon()
     local mod = shouldWindowUseModBranding()
     love.window.setIcon(mod and mod.window_icon_data or Kristal.icon)
     love.window.setTitle(mod and mod.name or Kristal.game_default_name)
+
+    -- eh, this is mildly amusing
+    if Mod then
+        Kristal.funnytitle()
+    end
+end
+
+-- Sets a random title and icon to the game window.
+function Kristal.funnytitle(force_icon)
+    if Utils.random() < 0.5 then return end
+    local funnytitles = {
+        "Deltarune",
+        "Half-Life",
+        "* GOD damnit KRIS where the HELL are WE!?",
+        "* GOD damnit HERO where the HELL are WE!?",
+        "* SO, I have no fucking clue where we are.",
+        "* z...z.....z.....z.......Z.........Z",
+        "Kristale",
+        "* \z
+        WHAT? WHAT? WHAT? WHAT? WHAT? WHAT? WHAT? WHAT? WHAT? WHAT? WHAT? WHAT? \z
+        WHAT? WHAT? WHAT? WHAT? WHAT? WHAT? WHAT? WHAT? WHAT? WHAT? WHAT? WHAT? \z
+        WHAT? WHAT? WHAT? WHAT? WHAT? WHAT? WHAT? WHAT?",
+        "A DESS, a FLIMBO, and a DELF from the SHELF",
+        "* REDDIT GOLD POG!!",
+        "LOOK ITS bAnNAna and MEGALORE!!!",
+        "GREYAREA",
+        "Kristal",
+        "Spamton Sweepstakes",
+        "Includes Darkness!",
+        "It's raining somewhere else...",
+        "Minecraft",
+        "Counter Strike Source Not Found()",
+        "Grian Is Watching You.",
+        "PLAY THE RIBBIT MOD, NOW!!!",
+        "Dark Place: REBIRTH",
+        "Thetaseal",
+        "Undertale Yellow: The Roba Edition",
+        "Power Star",
+        "Doki Doki Literature Club!"
+    }
+    local funnytitle_rand = love.math.random(#funnytitles)
+    if force_icon then funnytitle_rand = force_icon end
+    local funnytitle = funnytitles[funnytitle_rand] or "Depa Runts"
+    local funnyicon = Assets.getTextureData("kristal/icons/icon_"..tostring(funnytitle_rand)) or Kristal.icon
+    love.window.setTitle(funnytitle)
+    love.window.setIcon(funnyicon)
 end
 
 --- Called internally. Calls the `preInit` event on the mod and initializes the registry.
@@ -1579,6 +1646,7 @@ function Kristal.loadConfig()
         defaultName = "",
         skipNameEntry = false,
         verboseLoader = false,
+        ["plugins/enabled_plugins"] = {}
     }
     if love.filesystem.getInfo("settings.json") then
         Utils.merge(config, JSON.decode(love.filesystem.read("settings.json")))
@@ -1722,8 +1790,11 @@ function Kristal.callEvent(f, ...)
     if not Mod then return end
     local lib_result = {Kristal.libCall(nil, f, ...)}
     local mod_result = {Kristal.modCall(f, ...)}
+    local plugin_result = {Kristal.PluginLoader.pluginCall(f, ...)}
     --print("EVENT: "..tostring(f), #mod_result, #lib_result)
-    if(#mod_result > 0) then
+    if(#plugin_result > 0) then
+        return Utils.unpack(plugin_result)
+    elseif(#mod_result > 0) then
         return Utils.unpack(mod_result)
     else
         return Utils.unpack(lib_result)

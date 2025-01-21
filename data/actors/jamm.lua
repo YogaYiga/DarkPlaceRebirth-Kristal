@@ -38,7 +38,6 @@ function actor:init()
 
         -- Battle animations
         ["battle/idle"]         = {"battle/idle", 0.2, true},
-        ["battle/low_health"]   = {"battle/low_hp", 0.2, true},
 
         ["battle/attack"]       = {"battle/attack", 1/15, false},
         ["battle/act"]          = {"battle/act", 1/15, false},
@@ -112,6 +111,11 @@ function actor:init()
     self.taunt_sprites = {"box", "bs_win", "maid"}
 	if Game:getFlag("jamm_closure") then
 		self.taunt_sprites = {"box", "ghost_bs", "maid"}
+	end
+
+    self.menu_anim = "bs_win"
+    if Game:getFlag("jamm_closure") then
+		self.menu_anim = "ghost_bs"
 	end
 end
 

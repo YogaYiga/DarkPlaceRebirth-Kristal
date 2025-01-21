@@ -6,6 +6,8 @@ function actor:init()
     -- Display name (optional)
     self.name = "SMG4 Mario"
 
+    self.walk_anim_speed = 3
+
     -- Width and height for this actor, used to determine its center
     self.width = 16
     self.height = 32
@@ -98,6 +100,8 @@ function actor:init()
 
         -- Walk Speed (optional)
         self.walk_speed_override = 16
+
+    self.menu_anim = "pose_star"
 end
 
 return actor
